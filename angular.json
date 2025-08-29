@@ -32,6 +32,7 @@
               }
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -42,7 +43,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -67,7 +68,8 @@
               "buildTarget": "sante20:build:production"
             },
             "development": {
-              "buildTarget": "sante20:build:development"
+              "buildTarget": "sante20:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
@@ -91,12 +93,17 @@
               }
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
               "src/styles.scss"
+              
             ],
-            "scripts": []
+            "scripts": ["node_modules/chart.js/dist/chart.umd.js"]
           }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "58a540bd-6ce4-4388-bb4e-17ebaef5fdf0"
   }
 }
