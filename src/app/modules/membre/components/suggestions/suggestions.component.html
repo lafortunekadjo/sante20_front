@@ -1,0 +1,23 @@
+<div class="main-container">
+  <div class="suggestion-card">
+    <h2 class="title">Faire une suggestion</h2>
+    <p class="subtitle">Vos retours nous aident à améliorer l'application et la vie du club.</p>
+
+    <form [formGroup]="suggestionForm" (ngSubmit)="onSubmit()" class="form-container">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Votre suggestion</mat-label>
+        <textarea matInput formControlName="texte" rows="5"
+          placeholder="Décrivez votre idée d'amélioration ici..."></textarea>
+        <mat-error *ngIf="suggestionForm.get('texte')?.hasError('required')">
+          La suggestion ne peut pas être vide.
+        </mat-error>
+        <mat-error *ngIf="suggestionForm.get('texte')?.hasError('minlength')">
+          La suggestion doit faire au moins 10 caractères.
+        </mat-error>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="!suggestionForm.valid">Envoyer la
+        suggestion</button>
+    </form>
+  </div>
+</div>

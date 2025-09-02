@@ -53,11 +53,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
     FormsModule,
     RouterModule,
     FilterByEquipePipe,
-    FilterNonPlayersPipe,
     MatSnackBarModule,
-    FilterByCartonsJaunesPipe,
-    FilterByCartonsRougesPipe,
-    FilterByEquipeAndNotPlayedPipe,
     FilterByButsPipe,
     FilterByPassesPipe,
     MatExpansionModule,
@@ -66,22 +62,26 @@ import { MatExpansionModule } from '@angular/material/expansion';
   styleUrl: './presence-form.component.scss'
 })
 export class PresenceFormComponent implements OnInit{
-dataSource = new MatTableDataSource<Presence>([]);
+dataSource = new MatTableDataSource<any>([]);
     displayedColumns: string[] = ['membre', 'present', 'aJoue', 'equipe', 'capitaine', 'mvpEquipe', 'mvpMatch' ,'buts', 'passes', 'cartonsJaunes', 'cartonsRouges'];
   isLoading: boolean = true;
   match: Match | null = null;
   membres: Membre[] = [];
+  membres2: Membre[] = [];
   groupeActif: Groupe| null = null;
   equipeNames: [string, string] = ['',''];
+  membresNonPresents: Membre[] = [];
+  selectedMembreIdToAdd: number | null = null;
+  occasionalPlayerName:string = ''
 
   constructor(
     private matchService: MatchService,
     private presenceService: PresenceService,
-    private adminService: MembreService,
     private groupeService: GroupeService,
     private authService: AuthService,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private membreService: MembreService
   ) {}
 
   ngOnInit() {
@@ -114,7 +114,8 @@ dataSource = new MatTableDataSource<Presence>([]);
       return forkJoin([
         this.matchService.getMatch(matchId),
         this.presenceService.getPresencesByMatchId(matchId),
-        this.adminService.getGroupMembers()
+        this.presenceService.getMembreByMatch(matchId),
+        this.membreService.getAllMembres()
       ]);
     }),
     catchError(err => {
@@ -124,12 +125,13 @@ dataSource = new MatTableDataSource<Presence>([]);
       return throwError(() => err);
     })
   ).subscribe({
-    next: ([match, presences, membres]) => {
+    next: ([match, presences, membres, membres2]) => {
       this.match = match;
       this.membres = membres;
+      this.membres2 = membres2;
 
       this.dataSource.data = membres.map(membre => {
-        const existingPresence = presences.find(p => p.membre.id === membre.id);
+        const existingPresence = presences.find(p => p.membre?.id === membre?.id);
         
         if (existingPresence) {
           return {
@@ -141,7 +143,7 @@ dataSource = new MatTableDataSource<Presence>([]);
           };
         }
         return {
-          id: 0,
+          id:0,
           match: match,
           membre: membre,
           present: false,
@@ -153,9 +155,14 @@ dataSource = new MatTableDataSource<Presence>([]);
           estHommeDuMatchEq: false,
           equipeMatch: match.typeMatch === 'INTERNE' ? membre?.equipe?.nom : 'LOCALE',
           cartonsJaunes: 0,
-          cartonsRouges: 0
+          cartonsRouges: 0,
+          nomOccasionnel:0,
         };
       });
+
+      const membresPresentsIds = presences.map(p => p.membre?.id);
+        this.membresNonPresents = this.membres2.filter(membre => !membresPresentsIds.includes(membre?.id));
+        console.log('Membres non présents:', this.membresNonPresents);
 
       this.isLoading = false;
 
@@ -169,10 +176,30 @@ dataSource = new MatTableDataSource<Presence>([]);
   });
 }
 
-  getCapitaine(equipe: string): string {
-    const capitaine = this.dataSource.data.find(p => p.present && p.aJoue && p.equipeMatch === equipe && p.estCapitaine);
-    return capitaine ? this.getMembreName(capitaine.membre.id) : 'Aucun';
+   getCapitaine(equipe: string): string {
+    const capitaine = this.dataSource.data.find(p => p.equipeMatch === equipe && p.estCapitaine);
+    return capitaine ? this.getMembreName(capitaine) : '_______________________';
   }
+
+  getHommeDuMatch(): string {
+    const hommeDuMatch = this.dataSource.data.find(p => p.present && p.aJoue && p.estHommeDuMatch);
+    return hommeDuMatch ? this.getMembreName(hommeDuMatch) : 'Aucun';
+  }
+
+  getMvpEquipe(): string {
+    const equipeJauneName = this.equipeNames[0];
+    const equipeRougeName = this.equipeNames[1];
+
+    const mvpJaune = this.dataSource.data.find(p => p.equipeMatch === equipeJauneName && p.estHommeDuMatchEq);
+
+    const mvpRouge = this.dataSource.data.find(p => p.equipeMatch === equipeRougeName && p.estHommeDuMatchEq);
+
+    const mvpJauneNom = mvpJaune ? this.getMembreName(mvpJaune) : 'Aucun';
+    const mvpRougeNom = mvpRouge ? this.getMembreName(mvpRouge) : 'Aucun';
+
+    return `${equipeJauneName} : ${mvpJauneNom} | ${equipeRougeName} : ${mvpRougeNom}`;
+  }
+
 
   getTotalCartons(equipe: string, typeCarton: 'JAUNES' | 'ROUGES'): number {
   // Vérifie si la source de données est disponible et contient des données
@@ -199,33 +226,37 @@ dataSource = new MatTableDataSource<Presence>([]);
       .reduce((sum, p) => sum + p.buts, 0);
   }
 
-  getHommeDuMatch(): string {
-    const hommeDuMatch = this.dataSource.data.find(p => p.present && p.aJoue && p.estHommeDuMatch);
-    return hommeDuMatch ? this.getMembreName(hommeDuMatch.membre.id) : 'Aucun';
-  }
-  getMvpEquipe(): string {
-    // This function now returns the MVP for each team.
-    const equipeJauneName = this.equipeNames[0];
-    const equipeRougeName = this.equipeNames[1];
+  // getHommeDuMatch(): string {
+  //   const hommeDuMatch = this.dataSource.data.find(p => p.present && p.aJoue && p.estHommeDuMatch);
+  //   return hommeDuMatch ? this.getMembreName(hommeDuMatch.membre.id) : 'Aucun';
+  // }
+  // getMvpEquipe(): string {
+  //   // This function now returns the MVP for each team.
+  //   const equipeJauneName = this.equipeNames[0];
+  //   const equipeRougeName = this.equipeNames[1];
 
-    // Find the MVP for the first team (yellow).
-    const mvpJaune = this.dataSource.data.find(p => p.equipeMatch === equipeJauneName && p.estHommeDuMatchEq);
+  //   // Find the MVP for the first team (yellow).
+  //   const mvpJaune = this.dataSource.data.find(p => p.equipeMatch === equipeJauneName && p.estHommeDuMatchEq);
 
-    // Find the MVP for the second team (red).
-    const mvpRouge = this.dataSource.data.find(p => p.equipeMatch === equipeRougeName && p.estHommeDuMatchEq);
+  //   // Find the MVP for the second team (red).
+  //   const mvpRouge = this.dataSource.data.find(p => p.equipeMatch === equipeRougeName && p.estHommeDuMatchEq);
 
-    // Format the output string to display both MVPs.
-    const mvpJauneNom = mvpJaune ? this.getMembreName(mvpJaune.membre.id) : 'Aucun';
-    const mvpRougeNom = mvpRouge ? this.getMembreName(mvpRouge.membre.id) : 'Aucun';
+  //   // Format the output string to display both MVPs.
+  //   const mvpJauneNom = mvpJaune ? this.getMembreName(mvpJaune.membre.id) : 'Aucun';
+  //   const mvpRougeNom = mvpRouge ? this.getMembreName(mvpRouge.membre.id) : 'Aucun';
 
-    // Return a formatted string with both MVPs.
-    return `${equipeJauneName} : ${mvpJauneNom} | ${equipeRougeName} : ${mvpRougeNom}`;
-  }
+  //   // Return a formatted string with both MVPs.
+  //   return `${equipeJauneName} : ${mvpJauneNom} | ${equipeRougeName} : ${mvpRougeNom}`;
+  // }
 
-  getMembreName(membreId: number): string {
-    const membre = this.membres.find(m => m.id === membreId);
-    return membre ? `${membre.nom} ${membre.prenom}` : 'Inconnu';
-  }
+ getMembreName(presence: any): string {
+    if (presence.membre && presence.membre.nom && presence.membre.prenom) {
+        return `${presence.membre.nom} ${presence.membre.prenom}`;
+    } else if (presence.nomOccasionnel) {
+        return presence.nomOccasionnel;
+    }
+    return 'Nom inconnu';
+}
 
   setCapitaine(presence: Presence) {
     if (presence.estCapitaine) {
@@ -303,6 +334,8 @@ isPresenceValid(): boolean {
 
   return hasCapitaineEquipe1 && hasCapitaineEquipe2;
 }
+
+
 
   savePresences() {
     if (this.isPresenceValid()) {
@@ -399,6 +432,82 @@ getEquipeNames(adversaire: string | undefined): [string, string] {
     // Gère les autres types de matchs ou les erreurs
     return ['Locale', 'Adverse'];
 }
+
+addMembreToPresenceList() {
+
+    if (this.selectedMembreIdToAdd !== null) {
+      const membreToAdd = this.membres2.find(m => m.id === this.selectedMembreIdToAdd);
+
+      if (membreToAdd) {
+        const newPresence: any = {
+          id: 0,
+          match: this.match!,
+          membre: membreToAdd,
+          present: true,
+          aJoue: false,
+          estCapitaine: false,
+          buts: 0,
+          passes: 0,
+          estHommeDuMatch: false,
+          estHommeDuMatchEq: false,
+          equipeMatch: this.match!.typeMatch === 'INTERNE' ? membreToAdd.equipe?.nom : 'LOCALE',
+          cartonsJaunes: 0,
+          cartonsRouges: 0,
+        };
+
+        this.dataSource.data = [...this.dataSource.data, newPresence];
+
+        this.membresNonPresents = this.membresNonPresents.filter(m => m.id !== this.selectedMembreIdToAdd);
+        this.selectedMembreIdToAdd = null;
+
+        this.snackBar.open(`${this.getMembreName(membreToAdd.id)} a été ajouté à la feuille de présence.`, 'Fermer', {
+          duration: 3000,
+        });
+      }
+    }
+  }
+
+ // Method to add an occasional player
+addOccasionalPlayer() {
+    // Check if the occasional player's name is provided
+    if (this.occasionalPlayerName.trim() === '') {
+        console.error("Veuillez entrer un nom pour le joueur occasionnel.");
+        this.snackBar.open("Veuillez entrer un nom pour le joueur occasionnel.", 'Fermer', {
+            duration: 3000,
+        });
+        return;
+    }
+    
+    // Create a new presence object for the occasional player
+    const newPresence: any = {
+        id: 0, // Placeholder ID
+        match: this.match!,
+        membre: null, // The member is null for an occasional player
+        nomOccasionnel: this.occasionalPlayerName.trim(), // Assign the entered name
+        present: true,
+        aJoue: false,
+        estCapitaine: false,
+        buts: 0,
+        passes: 0,
+        estHommeDuMatch: false,
+        estHommeDuMatchEq: false,
+        equipeMatch: this.equipeNames,
+        cartonsJaunes: 0,
+        cartonsRouges: 0,
+    };
+    
+    // Add the new presence to the data source
+    this.dataSource.data = [...this.dataSource.data, newPresence];
+    
+    // Display a confirmation message
+    this.snackBar.open(`${this.occasionalPlayerName.trim()} a été ajouté à la feuille de présence.`, 'Fermer', {
+        duration: 3000,
+    });
+    
+    // Clear the input field after adding
+    this.occasionalPlayerName = '';
+}
+
 
 
  

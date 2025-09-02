@@ -18,6 +18,8 @@ import { EvenementComponent } from "./modules/responsable/components/evenement/e
 import { LayoutComponent } from "./shared/components/layout/layout.component";
 import { PasswordResetDialogComponent } from "./shared/components/password-reset-dialog/password-reset-dialog.component";
 import { NewsFeedComponent } from "./modules/membre/components/news-feed/news-feed.component";
+import { SuggestionsComponent } from "./modules/membre/components/suggestions/suggestions.component";
+import { ObjectifsComponent } from "./modules/membre/components/objectifs/objectifs.component";
 
 
 export const routes: Routes = [
@@ -39,6 +41,16 @@ export const routes: Routes = [
       component: NewsFeedComponent,
     canActivate:[RoleGuard],
    data: { roles: ['ADMIN', 'RESPONSABLE'] }
+   },
+       { path: 'suggestions', 
+      component: SuggestionsComponent,
+    canActivate:[RoleGuard],
+   data: { roles: ['MEMBRE', 'RESPONSABLE'] }
+   },
+       { path: 'objectifs', 
+      component: ObjectifsComponent,
+    canActivate:[RoleGuard],
+   data: { roles: ['MEMBRE'] }
    },
   {
     path: 'groupes',

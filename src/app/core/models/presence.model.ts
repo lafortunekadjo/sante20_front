@@ -15,4 +15,5 @@ export interface Presence {
   cartonsJaunes: number;
   cartonsRouges: number;
   estHommeDuMatchEq:boolean;
+  nomOccasionnel: string;
 }

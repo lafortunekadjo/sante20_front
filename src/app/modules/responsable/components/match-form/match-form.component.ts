@@ -135,11 +135,23 @@ export class MatchFormComponent implements OnInit, AfterViewInit {
         this.equipe = equipes;
         this.typeSanctions = typeSanctions;
         this.isLoading = false;
+            // Crée une copie du tableau et la trie par date de match croissante
+      const sortedMatches = [...this.dataSource.data].sort((a, b) => {
+        return new Date(a.dateMatch).getTime() - new Date(b.dateMatch).getTime();
+      });
+      this.dataSource.data = sortedMatches
       },
       error: (err) => {
         console.error('Erreur lors du chargement des données:', err);
         this.isLoading = false;
       }
+    });
+  }
+
+  sortMatches(){
+    // Crée une copie du tableau et la trie par date de match croissante
+    const sortedMatches = [...this.dataSource.data].sort((a, b) => {
+      return new Date(a.dateMatch).getTime() - new Date(b.dateMatch).getTime();
     });
   }
 

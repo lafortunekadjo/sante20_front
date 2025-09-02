@@ -1,5 +1,40 @@
 <div class="membres-container">
   <h1 class="page-title">Fiche de Présence - Match du {{ match?.dateMatch | date:'shortDate' }}</h1>
+
+   <!-- Section pour ajouter un membre -->
+            <mat-card class="bg-gray-700 p-6 rounded-xl mb-6">
+              <mat-card-content>
+                <h3 class="text-xl font-semibold text-white mb-4">Ajouter un membre à la liste</h3>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                  <mat-form-field class="flex-grow w-full">
+                    <mat-label>Sélectionner un membre</mat-label>
+                    <mat-select [(ngModel)]="selectedMembreIdToAdd">
+                      <mat-option *ngFor="let membre of membresNonPresents" [value]="membre.id">
+                        {{ membre.nom }} {{ membre.prenom }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <button mat-raised-button color="primary" [disabled]="!selectedMembreIdToAdd" (click)="addMembreToPresenceList()" class="w-full sm:w-auto mt-4 sm:mt-0">
+                    Ajouter
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+             <!-- Nouvelle section pour ajouter un joueur occasionnel -->
+        <mat-card class="bg-gray-700 p-6 rounded-xl mb-6">
+            <mat-card-content>
+                <h3 class="text-xl font-semibold text-white mb-4">Ajouter un joueur occasionnel</h3>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <mat-form-field class="flex-grow w-full">
+                        <mat-label>Nom du joueur occasionnel</mat-label>
+                        <input matInput [(ngModel)]="occasionalPlayerName" placeholder="Entrez le nom du joueur">
+                    </mat-form-field>
+                    <button mat-raised-button color="accent" [disabled]="!occasionalPlayerName" (click)="addOccasionalPlayer()" class="w-full sm:w-auto mt-4 sm:mt-0">
+                        Ajouter Occasionnel
+                    </button>
+                </div>
+            </mat-card-content>
+        </mat-card>
   <mat-card class="table-card">
     <mat-card-header>
       <mat-card-title class="card-title">Fiche de Présence</mat-card-title>
@@ -20,7 +55,7 @@
           <mat-accordion>
             <mat-expansion-panel *ngFor="let presence of dataSource.data; let i = index" class="member-card">
               <mat-expansion-panel-header>
-                <mat-panel-title>{{ getMembreName(presence.membre.id) }}</mat-panel-title>
+                   <mat-panel-title>{{ getMembreName(presence)}}</mat-panel-title>
                 <mat-panel-description>
                   {{ presence.present ? 'Présent' : 'Absent' }}
                   {{ presence.aJoue ? ' - A joué' : '' }}
@@ -101,7 +136,7 @@
         <tbody>
           <tr *ngFor="let presence of dataSource.data | filterByEquipe:equipeNames[0]; let i = index">
             <td>{{ i + 1 }}</td>
-            <td>{{ getMembreName(presence.membre.id) }}</td>
+            <td>{{ getMembreName(presence) }}</td>
             <td>{{ presence.buts }}</td>
             <td>{{ presence.passes }}</td>
             <td>{{ presence.cartonsJaunes }}</td>
@@ -130,7 +165,7 @@
         <tbody>
           <tr *ngFor="let presence of dataSource.data | filterByEquipe:equipeNames[1]; let i = index">
             <td>{{ i + 1 }}</td>
-            <td>{{ getMembreName(presence.membre.id) }}</td>
+            <td>{{ getMembreName(presence) }}</td>
             <td>{{ presence.buts }}</td>
             <td>{{ presence.passes }}</td>
             <td>{{ presence.cartonsJaunes }}</td>
@@ -159,13 +194,13 @@
           <ng-container *ngFor="let presence of dataSource.data">
             <tr *ngIf="presence.cartonsJaunes > 0">
               <td>{{ presence.equipeMatch }}</td>
-              <td>{{ getMembreName(presence.membre.id) }}</td>
+              <td>{{ getMembreName(presence) }}</td>
               <td>Carton Jaune</td>
               <td>{{ presence.cartonsJaunes }}</td>
             </tr>
             <tr *ngIf="presence.cartonsRouges > 0">
               <td>{{ presence.equipeMatch }}</td>
-              <td>{{ getMembreName(presence.membre.id) }}</td>
+              <td>{{ getMembreName(presence) }}</td>
               <td>Carton Rouge</td>
               <td>{{ presence.cartonsRouges }}</td>
             </tr>
@@ -199,7 +234,7 @@
             <td colspan="3">
               <ul class="list-none">
                 <li *ngFor="let presence of dataSource.data | filterByButs; let last = last">
-                  {{ getMembreName(presence.membre.id) }} ({{ presence.buts }}){{ last ? '' : ', ' }}
+                  {{ getMembreName(presence) }} ({{ presence.buts }}){{ last ? '' : ', ' }}
                 </li>
                 <li *ngIf="(dataSource.data | filterByButs).length === 0">Aucun buteur</li>
               </ul>
@@ -210,7 +245,7 @@
             <td colspan="3">
               <ul class="list-none">
                 <li *ngFor="let presence of dataSource.data | filterByPasses; let last = last">
-                  {{ getMembreName(presence.membre.id) }} ({{ presence.passes }}){{ last ? '' : ', ' }}
+                  {{ getMembreName(presence) }} ({{ presence.passes }}){{ last ? '' : ', ' }}
                 </li>
                 <li *ngIf="(dataSource.data | filterByPasses).length === 0">Aucun passeur</li>
               </ul>
@@ -244,7 +279,7 @@
       <tbody>
         <tr *ngFor="let presence of (dataSource.data); let i = index">
           <td>{{ i + 1 }}</td>
-          <td>{{ getMembreName(presence.membre.id) }}</td>
+          <td>{{ getMembreName(presence) }}</td>
           <td></td>
         </tr>
         <tr *ngIf="(dataSource.data).length === 0">

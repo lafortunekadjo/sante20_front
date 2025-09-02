@@ -1,0 +1,70 @@
+.main-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+  padding: 24px;
+}
+
+.objectifs-card {
+  max-width: 600px;
+  width: 100%;
+  padding: 32px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-divider {
+  margin: 32px 0;
+}
+
+.objectif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.objectif-item {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+mat-progress-bar {
+  margin-top: 8px;
+  border-radius: 4px;
+}
+
+.no-goals-message {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  margin-top: 16px;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+}

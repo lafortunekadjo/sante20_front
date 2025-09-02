@@ -149,6 +149,8 @@ export class MembreService {
     return this.http.get<Membre[]>(this.apiUrl);
   }
 
+
+
   getMembresByGroupeId(groupeId: number): Observable<Membre[]> {
     return this.http.get<Membre[]>(`${this.apiUrl}/groupe/${groupeId}`);
   }

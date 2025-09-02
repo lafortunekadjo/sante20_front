@@ -1,0 +1,55 @@
+<div class="main-container">
+  <div class="objectifs-card">
+    <h2 class="title">Mes objectifs</h2>
+
+    <form [formGroup]="objectifForm" (ngSubmit)="onSubmit()" class="form-container">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Type d'objectif</mat-label>
+        <mat-select formControlName="type">
+          <mat-option value="BUTS">Buts</mat-option>
+          <mat-option value="PASSES">Passes</mat-option>
+          <mat-option value="PRESENCE">Présences</mat-option>
+          <mat-option value="CARTON">Cartons (Jaunes et Rouges)</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Valeur cible</mat-label>
+        <input matInput type="number" formControlName="valeurCible">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Période de l'objectif</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+          <input matStartDate formControlName="dateDebut" placeholder="Date de début">
+          <input matEndDate formControlName="dateFin" placeholder="Date de fin">
+        </mat-date-range-input>
+        <mat-hint>JJ/MM/AAAA – JJ/MM/AAAA</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="!objectifForm.valid">Créer un objectif</button>
+    </form>
+
+    <mat-divider></mat-divider>
+
+    <div class="objectif-list" *ngIf="!isLoading">
+      <mat-card *ngFor="let objectif of objectifs" class="objectif-item">
+        <mat-card-header>
+          <mat-card-title>{{ objectif.type }}</mat-card-title>
+          <mat-card-subtitle>{{ objectif.dateDebut | date }} - {{ objectif.dateFin | date }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Progression : {{ objectif.valeurActuelle }} / {{ objectif.valeurCible }}</p>
+          <mat-progress-bar [mode]="getProgressBarMode(objectif)" [value]="getProgressBarValue(objectif)"
+            [color]="getProgressBarColor(objectif)"></mat-progress-bar>
+        </mat-card-content>
+      </mat-card>
+      <p *ngIf="objectifs.length === 0" class="no-goals-message">Vous n'avez pas encore d'objectifs.</p>
+    </div>
+    <div *ngIf="isLoading" class="loading-spinner">
+      <mat-spinner></mat-spinner>
+    </div>
+  </div>
+</div>

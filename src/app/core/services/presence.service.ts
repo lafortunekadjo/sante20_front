@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environment';
 import { Presence } from '../models/presence.model';
+import { Membre } from '../models/membre.model';
 
 @Injectable({
   providedIn: 'root'
@@ -50,23 +51,24 @@ export class PresenceService {
     return this.http.get<Presence[]>(`${this.presenceUrl}/match/${matchId}`);
   }
 
-  getPresencesByMembreId(membreId: number): Observable<Presence[]> {
-    return this.http.get<Presence[]>(`${this.presenceUrl}/membre/${membreId}`);
+  getPresencesByMembreId(membreId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.presenceUrl}/membre/${membreId}`);
   }
 
    getPresenceByMatchAndMembre(matchId: number, membreId: number): Observable<Presence> {
     return this.http.get<Presence>(`${this.presenceUrl}/match/${matchId}/membre/${membreId}`);
   }
 
-savePresences(matchId: number, presences: Presence[]): Observable<void> {
+savePresences(matchId: number, presences: any[]): Observable<void> {
     console.log('Présences avant transformation:', presences);
     const payload = presences
       .filter(p => p.present) // Inclure uniquement les présences avec present: true
       .map(presence => ({
         id: presence.id,
         matchId: presence.match?.id || matchId,
-        membre: presence.membre.id,
+        membre: presence.membre?.id,
         present: presence.present,
+        nomOccasionnel: presence.nomOccasionnel,
         aJoue: presence.aJoue,
         estCapitaine: presence.estCapitaine,
         buts: presence.buts,
@@ -83,5 +85,18 @@ savePresences(matchId: number, presences: Presence[]): Observable<void> {
 
   deletePresence(id: number): Observable<void> {
     return this.http.delete<void>(`${this.presenceUrl}/${id}`);
+  }
+
+  getMembreByMatch(id: number): Observable<Membre[]> {
+    return this.http.get<Membre[]>(`${this.presenceUrl}/matchAll/${id}`);
+  }
+
+  getPresencesForMembre(membreId: number, dateDebut: Date, dateFin: Date): Observable<Presence[]> {
+    let params = new HttpParams()
+      .set('membreId', membreId.toString())
+      .set('dateDebut', dateDebut.toISOString())
+      .set('dateFin', dateFin.toISOString());
+
+    return this.http.get<Presence[]>(`${this.presenceUrl}/by-membre-and-dates`, { params });
   }
 }

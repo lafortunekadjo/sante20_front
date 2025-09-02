@@ -59,6 +59,15 @@
             <mat-icon class="mr-4">payment</mat-icon> <!-- Remplacé monetization_on par payment pour plus de clarté -->
             <span>Cotisations</span>
           </a>
+           <a mat-list-item [routerLink]="['/objectifs']" routerLinkActive="active" class="flex items-center py-3 px-4 hover:bg-primary-light transition-colors">
+            <mat-icon class="mr-4">payment</mat-icon> <!-- Remplacé monetization_on par payment pour plus de clarté -->
+            <span>Objectifs</span>
+          </a>
+
+          <a mat-list-item [routerLink]="['/suggestions']" routerLinkActive="active" class="flex items-center py-3 px-4 hover:bg-primary-light transition-colors">
+            <mat-icon class="mr-4">payment</mat-icon> <!-- Remplacé monetization_on par payment pour plus de clarté -->
+            <span>suggestions</span>
+          </a>
         </ng-container>
       </mat-nav-list>
     </mat-sidenav>
